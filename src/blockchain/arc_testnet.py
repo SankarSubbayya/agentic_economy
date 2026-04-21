@@ -73,8 +73,8 @@ class USDCTransfer:
 class ArcTestnet:
     """Arc testnet blockchain integration."""
 
-    # Arc testnet configuration
-    CHAIN_ID = 42170
+    # Arc testnet configuration (real chain ID: 5042002)
+    CHAIN_ID = 5042002
     RPC_ENDPOINT = "https://rpc.arc.testnet.circle.com"
     USDC_CONTRACT = "0xA2F67F45938e3cBEc8d6D92c25b3E3E49ED69767"
     EXPLORER = "https://explorer.arc.testnet.circle.com"

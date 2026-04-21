@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
 
-    # Arc Testnet Configuration
+    # Arc Testnet Configuration (real chain ID: 5042002)
     ARC_TESTNET_RPC: str = "https://rpc.arc.testnet.circle.com"
-    ARC_TESTNET_CHAIN_ID: int = 42170
+    ARC_TESTNET_CHAIN_ID: int = 5042002
 
     # Wallet Addresses
     USER_WALLET: str = "0x742d35Cc6634C0532925a3b844Bc9e7595f"

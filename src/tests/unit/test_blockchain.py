@@ -126,7 +126,7 @@ class TestArcTestnet:
         return ArcTestnet()
 
     def test_testnet_initialization(self, arc):
-        assert arc.chain_id == 42170
+        assert arc.chain_id == 5042002  # Real Arc testnet chain ID
         assert arc.usdc_contract == "0xA2F67F45938e3cBEc8d6D92c25b3E3E49ED69767"
 
     def test_set_and_get_balance(self, arc):

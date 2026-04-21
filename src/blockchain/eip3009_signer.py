@@ -41,7 +41,7 @@ class EIP3009Signer:
     # EIP-3009 domain separator constants
     DOMAIN_NAME = "USD Coin"
     DOMAIN_VERSION = "2"
-    DOMAIN_CHAIN_ID = 42170  # Arc testnet
+    DOMAIN_CHAIN_ID = 5042002  # Arc testnet (real chain ID)
 
     def __init__(self, private_key: str):
         """Initialize signer with private key.

@@ -168,7 +168,7 @@ async def test_blockchain_stats(settlement_agent, payer_wallet, recipient_wallet
 
     # Get blockchain stats
     stats = settlement_agent.get_blockchain_stats()
-    assert stats["chain_id"] == 42170
+    assert stats["chain_id"] == 5042002  # Real Arc testnet chain ID
     assert stats["total_transactions"] >= 1
     assert stats["total_transfers"] >= 1
 
