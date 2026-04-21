@@ -319,6 +319,92 @@
             animation: pulse 2s infinite;
         }
 
+        /* Light Mode Theme */
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 50%, #f0f0f5 100%);
+        }
+
+        body.light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .glass-card:hover {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+        }
+
+        body.light-mode .card-title {
+            color: #0066cc;
+        }
+
+        body.light-mode .metric-label {
+            color: #666666;
+        }
+
+        body.light-mode .metric-value {
+            color: #0066cc;
+        }
+
+        body.light-mode .metric-value.success {
+            color: #00aa44;
+        }
+
+        body.light-mode th {
+            background: rgba(0, 102, 204, 0.05);
+            color: #0066cc;
+        }
+
+        body.light-mode td {
+            color: #333333;
+        }
+
+        body.light-mode .header {
+            color: #0066cc;
+        }
+
+        body.light-mode .header p {
+            color: #0066cc;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .theme-toggle label {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle input[type="checkbox"] {
+            width: 40px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #00d9ff;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -327,10 +413,23 @@
             .grid {
                 grid-template-columns: 1fr;
             }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="theme-toggle">
+        <label>
+            <input type="checkbox" id="themeToggle" />
+            <span id="themeLabel">🌙 Dark</span>
+        </label>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>⚡ Agentic Economy on Arc</h1>
@@ -682,5 +781,33 @@
             <p style="margin-top: 8px;">Real-time Agent-to-Agent nanopayments with quality gating and Arc blockchain settlement</p>
         </div>
     </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeLabel = document.getElementById('themeLabel');
+        const body = document.body;
+
+        // Load saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggle.checked = true;
+            themeLabel.textContent = '☀️ Light';
+        }
+
+        // Theme toggle event listener
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                body.classList.add('light-mode');
+                themeLabel.textContent = '☀️ Light';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light-mode');
+                themeLabel.textContent = '🌙 Dark';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
 </body>
 </html>
