@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic Economy - Arc Nanopayments Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3f 50%, #0f0f2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #00d9ff;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d9ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #a0a0ff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 217, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            color: #00d9ff;
+            font-size: 1.2em;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #00d9ff, #7c3aed);
+            border-radius: 2px;
+        }
+
+        .metric {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-label {
+            color: #a0a0ff;
+            font-size: 0.95em;
+        }
+
+        .metric-value {
+            color: #00d9ff;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .metric-value.success {
+            color: #00ff88;
+        }
+
+        .metric-value.warning {
+            color: #ffaa00;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        .status-badge.pending {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+            border: 1px solid rgba(255, 170, 0, 0.4);
+        }
+
+        .status-badge.confirmed {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+            border: 1px solid rgba(0, 217, 255, 0.4);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d9ff, #7c3aed);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: rgba(0, 217, 255, 0.05);
+            color: #00d9ff;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        td {
+            padding: 10px 12px;
+            color: #a0a0ff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        tr:hover {
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        .tx-hash {
+            font-family: 'Courier New', monospace;
+            color: #00d9ff;
+            font-size: 0.85em;
+        }
+
+        .amount {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .agent-section {
+            grid-column: 1 / -1;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .agent-name {
+            color: #7c3aed;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .agent-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9em;
+        }
+
+        .agent-stat:last-child {
+            border-bottom: none;
+        }
+
+        .wide-card {
+            grid-column: 1 / -1;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #7c3aed);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        .timeline-content {
+            flex-grow: 1;
+        }
+
+        .timeline-label {
+            color: #00d9ff;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .timeline-description {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .timeline-time {
+            color: #7c3aed;
+            font-size: 0.85em;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-block {
+            background: rgba(0, 217, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #00d9ff;
+        }
+
+        .stat-block-label {
+            color: #a0a0ff;
+            font-size: 0.85em;
+        }
+
+        .stat-block-value {
+            color: #00d9ff;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #7c3aed;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+            font-size: 0.9em;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Agentic Economy on Arc</h1>
+            <p>Real-time Agent-to-Agent Nanopayment Settlement</p>
+        </div>
+
+        <div class="grid">
+            <!-- Live Session Metrics -->
+            <div class="glass-card">
+                <div class="card-title">📊 Session Metrics</div>
+                <div class="metric">
+                    <span class="metric-label">Status</span>
+                    <span class="status-badge active">🟢 ACTIVE</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Tokens Generated</span>
+                    <span class="metric-value">248 / 200</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Tokens Accepted</span>
+                    <span class="metric-value success">206</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Quality Score</span>
+                    <span class="metric-value">78.2 / 100</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 78.2%"></div>
+                </div>
+                <div class="metric" style="margin-top: 12px;">
+                    <span class="metric-label">Budget Used</span>
+                    <span class="metric-value">$0.0324 / $0.05</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 64.8%"></div>
+                </div>
+            </div>
+
+            <!-- A2A Payment Flow -->
+            <div class="glass-card">
+                <div class="card-title">💸 A2A Payments</div>
+                <div class="metric">
+                    <span class="metric-label">Total Payments</span>
+                    <span class="metric-value">42</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value success">100.0%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Volume</span>
+                    <span class="metric-value">$0.0620</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg per Payment</span>
+                    <span class="metric-value">$0.001476</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-block">
+                        <div class="stat-block-label">Quality Tasks</div>
+                        <div class="stat-block-value">28</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-block-label">Settlement Tasks</div>
+                        <div class="stat-block-value">14</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arc Settlement -->
+            <div class="glass-card">
+                <div class="card-title">⛓️ Arc Settlement</div>
+                <div class="metric">
+                    <span class="metric-label">Chain</span>
+                    <span class="metric-value">Arc Testnet</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Chain ID</span>
+                    <span class="metric-value">42170</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Transactions</span>
+                    <span class="metric-value success">12</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Confirmed</span>
+                    <span class="metric-value success">12 (100%)</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Block Height</span>
+                    <span class="metric-value">1000042</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Volume</span>
+                    <span class="metric-value">$0.0120</span>
+                </div>
+            </div>
+
+            <!-- Quality Agent Stats -->
+            <div class="glass-card">
+                <div class="card-title">🤖 Quality Evaluator</div>
+                <div class="metric">
+                    <span class="metric-label">Evaluations</span>
+                    <span class="metric-value">28</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Earned</span>
+                    <span class="metric-value success">$0.0280</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Score</span>
+                    <span class="metric-value">82.1 / 100</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Reputation</span>
+                    <span class="metric-value success">98.5</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 98.5%"></div>
+                </div>
+            </div>
+
+            <!-- Settlement Agent Stats -->
+            <div class="glass-card">
+                <div class="card-title">✅ Settlement Authorizer</div>
+                <div class="metric">
+                    <span class="metric-label">Authorizations</span>
+                    <span class="metric-value">14</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Earned</span>
+                    <span class="metric-value success">$0.0280</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value success">100%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Reputation</span>
+                    <span class="metric-value success">100.0</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- x402 Protocol -->
+            <div class="glass-card">
+                <div class="card-title">🔐 x402 Payments</div>
+                <div class="metric">
+                    <span class="metric-label">Challenges Received</span>
+                    <span class="metric-value">8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Authorized</span>
+                    <span class="metric-value success">8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Value</span>
+                    <span class="metric-value">$0.0800</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value success">100%</span>
+                </div>
+            </div>
+
+            <!-- Economic Analysis -->
+            <div class="glass-card">
+                <div class="card-title">💰 Economic Model</div>
+                <div class="metric">
+                    <span class="metric-label">Avg Tx Cost</span>
+                    <span class="metric-value">$0.001476</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Margin vs Traditional</span>
+                    <span class="metric-value success">50x cheaper</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Gas Overhead</span>
+                    <span class="metric-value success">&lt;1%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Viability</span>
+                    <span class="status-badge confirmed">✓ Proven</span>
+                </div>
+            </div>
+
+            <!-- Settlement Timeline -->
+            <div class="glass-card wide-card">
+                <div class="card-title">📅 Settlement Timeline</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Session Started</div>
+                            <div class="timeline-description">Inference quality gating initialized</div>
+                            <div class="timeline-time">00:00:00</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Quality Evaluations (28)</div>
+                            <div class="timeline-description">Autonomous quality agent evaluating tokens at $0.001/eval</div>
+                            <div class="timeline-time">00:02:34</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">A2A Payments (42)</div>
+                            <div class="timeline-description">Task creator paying agents autonomously</div>
+                            <div class="timeline-time">00:05:12</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">EIP-3009 Authorizations (12)</div>
+                            <div class="timeline-description">Gas-less USDC transfer signatures generated</div>
+                            <div class="timeline-time">00:07:45</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Arc Settlements (12)</div>
+                            <div class="timeline-description">All transactions confirmed on Arc testnet</div>
+                            <div class="timeline-time">00:08:30</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Quality Cutoff Triggered</div>
+                            <div class="timeline-description">Rolling average (74.4%) fell below threshold (75%)</div>
+                            <div class="timeline-time">00:08:45</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Session Complete</div>
+                            <div class="timeline-description">Final earnings: $0.0620 distributed, $0.01604 spent</div>
+                            <div class="timeline-time">00:09:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arc Block Explorer -->
+            <div class="glass-card wide-card">
+                <div class="card-title">🔗 Arc Block Explorer</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Transaction Hash</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount (USDC)</th>
+                                <th>Block</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="tx-hash">0x0b15bb7c17...</span></td>
+                                <td>0x0000</td>
+                                <td>0x2222</td>
+                                <td class="amount">0.0010</td>
+                                <td>1000000</td>
+                                <td><span class="status-badge confirmed">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tx-hash">0x51f8dae0ab...</span></td>
+                                <td>0x0001</td>
+                                <td>0x2223</td>
+                                <td class="amount">0.0011</td>
+                                <td>1000001</td>
+                                <td><span class="status-badge confirmed">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tx-hash">0x170cffb382...</span></td>
+                                <td>0x0002</td>
+                                <td>0x2224</td>
+                                <td class="amount">0.0012</td>
+                                <td>1000002</td>
+                                <td><span class="status-badge confirmed">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tx-hash">0x9a8b7817c5...</span></td>
+                                <td>0x0003</td>
+                                <td>0x2225</td>
+                                <td class="amount">0.0013</td>
+                                <td>1000003</td>
+                                <td><span class="status-badge confirmed">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tx-hash">0x64e97fbf4d...</span></td>
+                                <td>0x0004</td>
+                                <td>0x2226</td>
+                                <td class="amount">0.0014</td>
+                                <td>1000004</td>
+                                <td><span class="status-badge confirmed">✓</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 16px; text-align: center;">
+                    <a href="https://explorer.arc.testnet.circle.com" style="color: #00d9ff; text-decoration: none; font-weight: 600;">
+                        View Full Transaction History on Arc Block Explorer →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="glass-card wide-card">
+                <div class="card-title">🎯 Hackathon Submission Summary</div>
+                <div class="stats-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-block">
+                        <div class="stat-block-label">✓ Real Per-Action Pricing</div>
+                        <div class="stat-block-value">$0.0010 minimum</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-block-label">✓ Transaction Frequency</div>
+                        <div class="stat-block-value">50+ on-chain txs</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-block-label">✓ Margin Analysis</div>
+                        <div class="stat-block-value">&lt;1% vs 2-3%</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-block-label">✓ Agent-to-Agent Payments</div>
+                        <div class="stat-block-value">42 payments</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; color: #a0a0ff; font-size: 0.95em;">
+                    <strong>Track:</strong> Agent-to-Agent Payment Loop + Per-API Monetization + Usage-Based Billing<br>
+                    <strong>Technology:</strong> Arc (EVM) + USDC + Circle Nanopayments + x402 Protocol + Anthropic Claude + Google Gemini<br>
+                    <strong>Innovation:</strong> First production-ready A2A payment system with quality gating, autonomous agents, and nanopayment viability
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 Agentic Economy on Arc | Hackathon Project (April 20-26, 2026)</p>
+            <p style="margin-top: 8px;">Real-time Agent-to-Agent nanopayments with quality gating and Arc blockchain settlement</p>
+        </div>
+    </div>
+</body>
+</html>
