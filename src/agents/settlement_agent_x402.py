@@ -9,6 +9,7 @@ Enhanced settlement agent that:
 """
 
 from typing import Optional
+from src.config import settings
 from src.blockchain.eip3009_signer import EIP3009Signer, SignedAuthorization
 from src.blockchain.circle_nanopayments import CircleNanopayments, NanopaymentTx
 from src.blockchain.arc_testnet import ArcTestnet
@@ -45,11 +46,18 @@ class SettlementAgentX402:
         # EIP-3009 signer for gas-less authorizations
         self.signer = EIP3009Signer(private_key)
 
-        # Circle Nanopayments for submission
-        self.circle = CircleNanopayments(circle_api_key, is_testnet=True)
+        # Circle Nanopayments for submission (with real API option)
+        self.circle = CircleNanopayments(
+            circle_api_key,
+            is_testnet=True,
+            use_real_api=settings.USE_REAL_CIRCLE_API,
+        )
 
-        # Arc blockchain for verification
-        self.arc = ArcTestnet()
+        # Arc blockchain for verification (with real RPC option)
+        self.arc = ArcTestnet(
+            rpc_url=settings.ARC_TESTNET_RPC,
+            use_real_rpc=settings.USE_REAL_RPC,
+        )
 
         # x402 protocol handler
         self.x402_server = X402Server(wallet_address)

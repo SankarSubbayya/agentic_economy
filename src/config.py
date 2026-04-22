@@ -11,10 +11,15 @@ class Settings(BaseSettings):
     # API Keys
     ANTHROPIC_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
+    CIRCLE_API_KEY: str = ""  # Circle Nanopayments API key
 
     # Arc Testnet Configuration (real chain ID: 5042002)
     ARC_TESTNET_RPC: str = "https://rpc.arc.testnet.circle.com"
     ARC_TESTNET_CHAIN_ID: int = 5042002
+
+    # Blockchain Write Mode
+    USE_REAL_RPC: bool = False  # If True, write to Arc testnet
+    USE_REAL_CIRCLE_API: bool = False  # If True, submit to Circle Nanopayments API
 
     # Wallet Addresses
     USER_WALLET: str = "0x742d35Cc6634C0532925a3b844Bc9e7595f"

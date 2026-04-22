@@ -9,6 +9,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
+from web3 import Web3
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BlockchainStatus(str, Enum):
@@ -79,15 +83,33 @@ class ArcTestnet:
     USDC_CONTRACT = "0xA2F67F45938e3cBEc8d6D92c25b3E3E49ED69767"
     EXPLORER = "https://explorer.arc.testnet.circle.com"
 
-    def __init__(self, rpc_url: str = RPC_ENDPOINT):
+    def __init__(self, rpc_url: str = RPC_ENDPOINT, use_real_rpc: bool = False):
         """Initialize Arc testnet client.
 
         Args:
             rpc_url: RPC endpoint URL
+            use_real_rpc: If True, make real RPC calls; if False, simulate locally
         """
         self.rpc_url = rpc_url
         self.chain_id = self.CHAIN_ID
         self.usdc_contract = self.USDC_CONTRACT
+        self.use_real_rpc = use_real_rpc
+
+        # Initialize web3 connection if using real RPC
+        self.web3: Optional[Web3] = None
+        if use_real_rpc:
+            try:
+                self.web3 = Web3(Web3.HTTPProvider(rpc_url))
+                if self.web3.is_connected():
+                    logger.info(f"Connected to Arc testnet at {rpc_url}")
+                else:
+                    logger.warning(f"Could not connect to Arc testnet at {rpc_url}")
+                    self.use_real_rpc = False
+            except Exception as e:
+                logger.warning(f"Failed to initialize web3: {e}")
+                self.use_real_rpc = False
+
+        # Local simulation state
         self.transactions: dict[str, TransactionReceipt] = {}
         self.transfers: dict[str, USDCTransfer] = {}
         self.balances: dict[str, float] = {}
@@ -289,6 +311,77 @@ class ArcTestnet:
             "rpc_endpoint": self.rpc_url,
             "usdc_contract": self.USDC_CONTRACT,
         }
+
+    def get_transaction_receipt(self, tx_hash: str) -> Optional[dict]:
+        """Get transaction receipt from blockchain.
+
+        Args:
+            tx_hash: Transaction hash
+
+        Returns:
+            Transaction receipt dict or None
+        """
+        if self.use_real_rpc and self.web3:
+            try:
+                receipt = self.web3.eth.get_transaction_receipt(tx_hash)
+                return dict(receipt)
+            except Exception as e:
+                logger.warning(f"Failed to get receipt for {tx_hash}: {e}")
+                return None
+
+        # Fallback to local simulation
+        if tx_hash in self.transactions:
+            return {
+                "transactionHash": tx_hash,
+                "blockNumber": self.transactions[tx_hash].block_number,
+                "status": 1 if self.transactions[tx_hash].is_success() else 0,
+            }
+        return None
+
+    def verify_transaction_on_chain(self, tx_hash: str) -> bool:
+        """Verify transaction was confirmed on-chain.
+
+        Args:
+            tx_hash: Transaction hash
+
+        Returns:
+            True if transaction is confirmed
+        """
+        if self.use_real_rpc and self.web3:
+            try:
+                receipt = self.web3.eth.get_transaction_receipt(tx_hash)
+                return receipt and receipt.get("status") == 1
+            except Exception as e:
+                logger.warning(f"Failed to verify {tx_hash}: {e}")
+                return False
+
+        # Fallback to local simulation
+        if tx_hash in self.transactions:
+            return self.transactions[tx_hash].is_success()
+        return False
+
+    def get_balance_from_chain(self, address: str) -> Optional[float]:
+        """Get USDC balance from blockchain (real RPC).
+
+        Args:
+            address: Wallet address
+
+        Returns:
+            USDC balance or None if not available
+        """
+        if self.use_real_rpc and self.web3:
+            try:
+                # Get balance in wei
+                balance_wei = self.web3.eth.get_balance(address)
+                # Convert to USDC (6 decimals)
+                balance_usdc = balance_wei / 1e6
+                return balance_usdc
+            except Exception as e:
+                logger.warning(f"Failed to get balance for {address}: {e}")
+                return None
+
+        # Fallback to local simulation
+        return self.balances.get(address, 0.0)
 
     def reset(self) -> None:
         """Reset testnet state (for testing)."""

@@ -10,7 +10,10 @@ from datetime import datetime
 from typing import List, Optional
 from enum import Enum
 import httpx
+import logging
 from src.blockchain.eip3009_signer import SignedAuthorization
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionStatus(str, Enum):
@@ -76,18 +79,27 @@ class CircleNanopayments:
     API_BASE_URL = "https://api.circle.com/v1"
     TESTNET_BASE_URL = "https://testnet-api.circle.com/v1"
 
-    def __init__(self, api_key: str, is_testnet: bool = True):
+    def __init__(self, api_key: str, is_testnet: bool = True, use_real_api: bool = False):
         """Initialize Circle Nanopayments client.
 
         Args:
             api_key: Circle API key from developer console
             is_testnet: Use testnet (default) or production
+            use_real_api: If True, submit to real Circle API; if False, simulate locally
         """
         self.api_key = api_key
         self.is_testnet = is_testnet
         self.base_url = self.TESTNET_BASE_URL if is_testnet else self.API_BASE_URL
+        self.use_real_api = use_real_api and api_key and not api_key.startswith("sk_test_demo")
+
+        # Local simulation state
         self.batches: dict[str, SettlementBatch] = {}
         self.transactions: dict[str, NanopaymentTx] = {}
+
+        if self.use_real_api:
+            logger.info(f"Initialized Circle Nanopayments client (REAL API) at {self.base_url}")
+        else:
+            logger.info("Initialized Circle Nanopayments client (SIMULATION MODE)")
 
     def submit_authorization(
         self, signed_auth: SignedAuthorization, batch_id: str = "default"
@@ -199,6 +211,54 @@ class CircleNanopayments:
     def get_all_batches(self) -> List[dict]:
         """Get all batch statistics."""
         return [batch.get_stats() for batch in self.batches.values()]
+
+    async def submit_to_circle_api(self, tx_hash: str) -> bool:
+        """Submit transaction to real Circle Nanopayments API.
+
+        Args:
+            tx_hash: Transaction hash to submit
+
+        Returns:
+            True if submitted successfully
+        """
+        if not self.use_real_api or tx_hash not in self.transactions:
+            return False
+
+        tx = self.transactions[tx_hash]
+
+        try:
+            async with httpx.AsyncClient() as client:
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                }
+
+                payload = {
+                    "idempotencyKey": tx_hash,
+                    "transfersPayload": {
+                        "rawSignature": tx.signature,
+                        "amount": int(tx.amount_usdc * 1e6),
+                        "from": tx.from_address,
+                        "to": tx.to_address,
+                    },
+                }
+
+                url = f"{self.base_url}/eip3009/submitTransfers"
+                response = await client.post(url, json=payload, headers=headers)
+
+                if response.status_code in [200, 201]:
+                    tx.status = TransactionStatus.PENDING
+                    logger.info(f"Submitted {tx_hash} to Circle API")
+                    return True
+                else:
+                    logger.warning(
+                        f"Circle API returned {response.status_code}: {response.text}"
+                    )
+                    return False
+
+        except Exception as e:
+            logger.error(f"Failed to submit to Circle API: {e}")
+            return False
 
     def get_settlement_summary(self) -> dict:
         """Get summary of all settlements processed."""
