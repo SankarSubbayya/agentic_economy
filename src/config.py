@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     PROVIDER_WALLET: str = "0x8ba1f109a0E547B831995265700D2a04F"
     QUALITY_AGENT_WALLET: str = "0x9cb2f26A81e07cCde1de85C6d0Db4f4B5"
     SETTLEMENT_AGENT_WALLET: str = "0x1da2c4f01E07cCDe1de85C6d0Db4F4B"
+    HALLUCINATION_AGENT_WALLET: str = "0x3ef1c3D02F08cCDe1de85C6d0Db4F4B6"
     USER_PRIVATE_KEY: Optional[str] = None
 
     # Inference Settings

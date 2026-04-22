@@ -1,6 +1,7 @@
 import pytest
 from src.agents.autonomous_quality_agent import AutonomousQualityAgent
 from src.agents.autonomous_settlement_agent import AutonomousSettlementAgent
+from src.agents.hallucination_agent import HallucinationAgent
 from src.agents.task_creator_agent import TaskCreatorAgent
 from src.payment.a2a_router import A2ARouter
 
@@ -16,18 +17,30 @@ def settlement_agent():
 
 
 @pytest.fixture
+def hallucination_agent():
+    return HallucinationAgent("test-hallucination-agent")
+
+
+@pytest.fixture
 def a2a_router():
     router = A2ARouter()
     # Initialize with task creator as primary agent
     router.register_agent("task-creator-001", "0x0000", initial_balance=10.0)
     router.register_agent("test-quality-agent", "0x1111", initial_balance=0.0)
     router.register_agent("test-settlement-agent", "0x2222", initial_balance=0.0)
+    router.register_agent("test-hallucination-agent", "0x3333", initial_balance=0.0)
     return router
 
 
 @pytest.fixture
-def task_creator(quality_agent, settlement_agent, a2a_router):
-    return TaskCreatorAgent(quality_agent, settlement_agent, a2a_router, agent_id="task-creator-001")
+def task_creator(quality_agent, settlement_agent, hallucination_agent, a2a_router):
+    return TaskCreatorAgent(
+        quality_agent,
+        settlement_agent,
+        hallucination_agent,
+        a2a_router,
+        agent_id="task-creator-001",
+    )
 
 
 @pytest.mark.asyncio
@@ -36,6 +49,7 @@ async def test_task_creator_initialization(task_creator):
     assert task_creator.agent_id == "task-creator-001"
     assert task_creator.quality_agent is not None
     assert task_creator.settlement_agent is not None
+    assert task_creator.hallucination_agent is not None
     assert task_creator.router is not None
 
 
@@ -102,6 +116,7 @@ async def test_orchestrator_stats(task_creator, a2a_router):
     assert "task_creator_id" in stats
     assert "quality_agent" in stats
     assert "settlement_agent" in stats
+    assert "hallucination_agent" in stats
     assert "payment_flow" in stats
     assert "agent_accounts" in stats
 
