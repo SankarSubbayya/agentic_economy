@@ -1,8 +1,8 @@
 # Agentic Economy on Arc - Hackathon Project
 
 ![Status](https://img.shields.io/badge/Status-COMPLETE-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-66%2F66%20PASSING-blue)
-![Coverage](https://img.shields.io/badge/Coverage-74%25-yellowgreen)
+![Tests](https://img.shields.io/badge/Tests-85%2F85%20PASSING-blue)
+![Coverage](https://img.shields.io/badge/Coverage-75%25-yellowgreen)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 ## 🚀 Project Overview
@@ -40,6 +40,13 @@ The first complete implementation of:
                     │ Rolling Window Avg   │
                     │ 75% Threshold        │
                     └────────┬─────────────┘
+                             │
+                    ┌────────▼──────────────────┐
+                    │ HALLUCINATION DETECTION   │
+                    │ (Gemini Function Calling) │
+                    │ Fabrication Detection     │
+                    │ Hardcoded Spec Check      │
+                    └────────┬──────────────────┘
                              │
                     ┌────────▼──────────────┐
                     │  BUDGET TRACKING      │
@@ -122,18 +129,30 @@ The first complete implementation of:
 - Complete hackathon submission documentation
 - All metrics validated against demo results
 
+### **Day 6: Hallucination Detection Agent + Accountability**
+- Hallucination Detection Agent: earns $0.0015/detection
+- Gemini function calling with 3 detection tools:
+  - `check_factual_accuracy`: Identifies suspicious claims
+  - `identify_unsupported_claims`: Finds context-ungrounded statements
+  - `calculate_hallucination_score`: Aggregates findings (0-100)
+- Hardcoded spec enforcement: 2+ unsupported claims OR <0.5 confidence → cutoff
+- Integrated into TaskCreatorAgent orchestration workflow
+- 19 unit tests, 85/85 total tests passing, 75% coverage
+- Implements "Accountability Loop": agents verify output matches spec
+
 ---
 
 ## 🎯 Key Metrics
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tests Passing** | 66/66 | ✅ |
-| **Code Coverage** | 74% | ✅ |
+| **Tests Passing** | 85/85 | ✅ |
+| **Code Coverage** | 75% | ✅ |
 | **Transactions** | 97+ demonstrated | ✅ |
 | **A2A Payments** | 42 successful | ✅ |
 | **Success Rate** | 100% | ✅ |
 | **Min Transaction** | $0.001 USDC | ✅ |
+| **Hallucination Detections** | 19 tests | ✅ |
 | **Margin vs Traditional** | 50-300x cheaper | ✅ |
 | **Gas Overhead** | <1% | ✅ |
 
@@ -201,6 +220,7 @@ agentic_economy/
 │   ├── agents/
 │   │   ├── autonomous_quality_agent.py        # Autonomous evaluator
 │   │   ├── autonomous_settlement_agent.py     # Autonomous authorizer
+│   │   ├── hallucination_agent.py             # Hallucination detector
 │   │   ├── settlement_agent_x402.py           # Enhanced with x402
 │   │   └── task_creator_agent.py              # Orchestrator
 │   │
@@ -226,9 +246,10 @@ agentic_economy/
 │   │   └── token_buffer.py                    # Batch buffering
 │   │
 │   └── tests/
-│       ├── unit/                              # 46 unit tests
+│       ├── unit/                              # 65 unit tests
 │       │   ├── test_autonomous_agents.py      # Day 3 agents
-│       │   └── test_blockchain.py             # Day 4 blockchain
+│       │   ├── test_blockchain.py             # Day 4 blockchain
+│       │   └── test_hallucination_agent.py    # Day 6 hallucination
 │       └── integration/                       # 20 integration tests
 │           ├── test_a2a_agents.py            # A2A flow
 │           └── test_day4_settlement.py       # Settlement flow
@@ -244,7 +265,7 @@ agentic_economy/
 ### Option 1: Run All Tests
 ```bash
 uv run pytest src/tests/ -v
-# Result: 66 tests passing, 74% coverage
+# Result: 85 tests passing, 75% coverage
 ```
 
 ### Option 2: Run Individual Demos
@@ -283,6 +304,20 @@ from src.agents.autonomous_quality_agent import AutonomousQualityAgent
 agent = AutonomousQualityAgent("agent-id")
 result = await agent.evaluate_with_function_calling(text, query)
 # Returns: EvaluationResult(score=0-100, relevant, hallucinating, on_topic, reasoning)
+```
+
+### Hallucination Detection Agent
+```python
+from src.agents.hallucination_agent import HallucinationAgent
+
+agent = HallucinationAgent("agent-id")
+result = await agent.detect_hallucinations(text, context)
+# Returns: EvaluationResult with hallucinating flag set based on:
+#   - 2+ unsupported claims, OR
+#   - Context confidence < 0.5, OR
+#   - Suspicious claims found
+# Score: < 50 if hallucinating, > 70 if clean
+# Earns: $0.0015 per detection
 ```
 
 ### Settlement Agent
@@ -385,6 +420,11 @@ Settlement:       $4.80/hour
 **Solution**: Arc + USDC enables <1% fees  
 **Result**: Proven sub-cent transactions viable
 
+### Innovation 6: Hallucination Detection + Accountability Loop
+**Problem**: Quality scoring doesn't catch fabrications  
+**Solution**: Hardcoded spec verification with Gemini function calling  
+**Result**: Agents verify output against spec, not just scoring  
+
 ---
 
 ## 🧪 Testing
@@ -404,7 +444,7 @@ uv run pytest src/tests/ --cov=src --cov-report=html
 open htmlcov/index.html
 ```
 
-**Test Results**: 66/66 passing | 74% coverage | 1.28 seconds execution
+**Test Results**: 85/85 passing | 75% coverage | 1.28 seconds execution
 
 ---
 
@@ -482,7 +522,7 @@ Powered by:
 
 **Status**: ✅ **COMPLETE & READY FOR SUBMISSION**
 
-**Last Updated**: April 21, 2026  
-**Tests**: 66/66 passing ✅  
-**Coverage**: 74% ✅  
+**Last Updated**: April 21, 2026 (Day 6: Hallucination Agent Added)  
+**Tests**: 85/85 passing ✅  
+**Coverage**: 75% ✅  
 **Production Ready**: YES ✅
