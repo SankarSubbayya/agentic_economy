@@ -183,7 +183,7 @@ uv sync
 
 # 3. Configure environment
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your API keys (NEVER commit .env to git)
 
 # 4. Run tests
 uv run pytest src/tests/ -v
@@ -196,6 +196,8 @@ uv run python src/day2_demo.py  # Streaming + Quality + Budget
 uv run python src/day3_demo.py  # A2A Agent Payments
 uv run python src/day4_demo.py  # Blockchain Settlement
 ```
+
+**Security Note**: The `.env` file contains API keys and is excluded from git. Never commit it to version control. Use `.env.example` as a template.
 
 ---
 
