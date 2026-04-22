@@ -23,3 +23,5 @@ wheels/
 htmlcov/
 .coverage
 .pytest_cache/
+# Wallet files with private keys
+wallets.json
